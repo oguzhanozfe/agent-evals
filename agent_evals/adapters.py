@@ -42,7 +42,9 @@ def post_json(url, body, headers=None, timeout=120):
     if REPLAY_ONLY:
         raise LookupError("no recorded response for this request (replay mode)")
     request = urllib.request.Request(
-        url, json.dumps(body).encode(), {"Content-Type": "application/json", **(headers or {})}
+        url, json.dumps(body).encode(),
+        # Some providers' CDNs (Groq's, for one) reject urllib's default User-Agent with a 403.
+        {"Content-Type": "application/json", "User-Agent": "agent-evals/0.1", **(headers or {})},
     )
     for attempt in (0, 1):
         try:
@@ -67,7 +69,7 @@ def retry_after(error):
     if header and header.replace(".", "", 1).isdigit():
         return float(header)
     try:
-        found = re.search(r"retry in ([\d.]+)s\b", error.read().decode("utf-8", "replace"))
+        found = re.search(r"(?:retry|try again) in ([\d.]+)s\b", error.read().decode("utf-8", "replace"))
     except OSError:
         found = None
     return float(found.group(1)) if found else (5.0 if error.code == 503 else None)

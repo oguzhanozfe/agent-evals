@@ -20,7 +20,7 @@ The demo picks a model by itself:
 
 `--mode replay|gemini|ollama` forces a choice, `-k` sets the runs per scenario, and `--html FILE` writes the report page. CI runs the replay demo on every push.
 
-**Use a real model.** Keys are optional and read from the environment only: `GEMINI_API_KEY` (free tier), `DEEPSEEK_API_KEY`, or any OpenAI-compatible endpoint through `AGENT_EVALS_BASE_URL` / `AGENT_EVALS_MODEL` / `AGENT_EVALS_API_KEY`. Without a key, use a local Ollama. See [Run it](#run-it).
+**Use a real model.** Keys are optional and read from the environment only: `GEMINI_API_KEY` (free tier), `GROQ_API_KEY` (with `AGENT_EVALS_PROVIDER=groq`), `DEEPSEEK_API_KEY`, or any OpenAI-compatible endpoint through `AGENT_EVALS_BASE_URL` / `AGENT_EVALS_MODEL` / `AGENT_EVALS_API_KEY`. Without a key, use a local Ollama. See [Run it](#run-it).
 
 ## Why
 
@@ -99,7 +99,7 @@ All adapters produce `{"answer": str, "tool_calls": [{"name", "arguments"}], "us
 
 The tools file holds `system`, the `tools` schemas and fixed `mock_results` per tool. See [examples/tools_mocked.json](examples/tools_mocked.json). `--reasoning-effort none` is passed through to the endpoint. Ollama uses it to turn off thinking, which makes `qwen3.5:9b` much faster.
 
-The toy agent in [examples/toy_agent.py](examples/toy_agent.py) picks its endpoint with `AGENT_EVALS_PROVIDER` (`gemini` when `GEMINI_API_KEY` is set, otherwise `ollama`, or `deepseek`). It is the same `OpenAIChatAgent` loop with real Python tools over an in-memory game store. It has six tools: find a player, get an order, search help, refund, convert currency, and open a ticket. Its refund tool enforces a 14-day rule in code.
+The toy agent in [examples/toy_agent.py](examples/toy_agent.py) picks its endpoint with `AGENT_EVALS_PROVIDER` (`gemini` when `GEMINI_API_KEY` is set, otherwise `ollama`; or `groq`, `deepseek`). It is the same `OpenAIChatAgent` loop with real Python tools over an in-memory game store. It has six tools: find a player, get an order, search help, refund, convert currency, and open a ticket. Its refund tool enforces a 14-day rule in code.
 
 ## Measured results
 
@@ -110,6 +110,7 @@ Every number below comes from a run file in [runs/](runs/). The runs were made o
 | model | where | k | pass@k | pass^k | always failing | adapter errors | run file |
 |---|---|---|---|---|---|---|---|
 | `gemma-4-31b-it` | Gemini API, free tier | 3 | 100% of 15 | 93% of 15 | none (refund-policy flaky, 2/3) | 1 of 45 (HTTP 503 "high demand") | [gemma-4-31b-t0.json](runs/gemma-4-31b-t0.json) |
+| `openai/gpt-oss-120b` | Groq, free tier | 3 | 80% of 15 | 73% of 15 | order-status, order-item, unknown-order (json-answer flaky, 2/3) | 1 of 45 (HTTP 429) | [gpt-oss-120b-groq-t0.json](runs/gpt-oss-120b-groq-t0.json) |
 | `qwen3.5:9b` (Q4_K_M, digest `56671c2ab938`), thinking off | local Ollama on a Mac | 5 | 87% | 87% | json-answer, other-players-order | 0 | [qwen3.5-9b-t0.json](runs/qwen3.5-9b-t0.json) |
 | `gemini-3.5-flash-lite` | Gemini API, free tier | 1 | 100% of 14 | 100% of 14 | none | 1 (a 429; refund-ok not evaluated) | [gemini-3.5-flash-lite-k1.json](runs/gemini-3.5-flash-lite-k1.json) |
 
@@ -119,6 +120,8 @@ What the local model got wrong, every time:
 - **other-players-order**: `kai@example.com` asked about an order that belongs to another player. The model looked up both, even noted that the order "belongs to player P100, not you", and then listed its contents anyway.
 
 What Gemma did differently: it called `get_order` before answering in JSON, and it refused to show another player's order. Both of those failed in every qwen run. Its one flaky scenario points at the toy agent itself. `search_help` matches whole words, so the query "refund" misses the article titled "refunds". Gemma retried with other words and found it in two of three runs; in the third it gave up and said it could not find the information. The toy agent was left as it is, and the flake is reported as found. Fixing the tool would be the next step.
+
+What gpt-oss-120b did differently: it always asked for the player's email before it would look up an order. That fails the three scenarios that give only an order number, every time, and one of three `json-answer` runs. It is a defensible reading of the toy agent's rule ("only share orders whose player_id matches"), and Gemma and qwen read the same rule more loosely. The scenarios were left as they are, but this is a spec ambiguity, not clearly a model error. Its correct `refund-too-old` answer also exposed a checker bug: it wrote "14 days" with a narrow no-break space, and the regex missed it. Answer checks now treat every Unicode space as a plain space. Re-checking every stored run under the new rule changed no result. The Groq file was filled in with a second cached pass after per-minute 429s, so it reports no latency either. Its tokens (47,238 in / 6,354 out) count the 44 recorded conversations.
 
 The Gemma run file was completed over several passes with a disk cache (`AGENT_EVALS_CACHE`). Each later pass replayed the cached responses and only re-requested the conversations that had errored, mostly with Gemini free-tier 503s. One conversation (`other-players-order`, sample 1) got a 503 on every attempt and is still unevaluated. Its token totals (76,224 in / 2,995 out) count the 44 recorded conversations, not billed calls. No latency is reported for it: every completed conversation was at least partly replayed from the cache, so there is nothing honest to measure. These recorded responses are also what the no-key demo replays.
 

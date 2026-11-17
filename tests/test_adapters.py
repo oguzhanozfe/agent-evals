@@ -140,6 +140,8 @@ class RateLimitsAndCache(StubServer):
     def test_short_429_is_retried_once(self):
         Stub.replies = [(429, {"error": "slow down, retry in 0.01s please"}), {"ok": 1}]
         self.assertEqual(adapters.post_json(self.base, {}), {"ok": 1})
+        Stub.replies = [(429, {"error": "Rate limit reached. Please try again in 0.01s."}), {"ok": 2}]
+        self.assertEqual(adapters.post_json(self.base, {}), {"ok": 2})
 
     def test_daily_quota_is_not_looped_on(self):
         Stub.replies = [(429, {"error": "quota exceeded, retry in 23549.3s"})]

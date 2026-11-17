@@ -107,6 +107,8 @@ def shape_errors(shape, value, path="$"):
 
 
 def check_answer(scenario, answer):
+    # Models write "14\u202fdays" or "9,99\xa0EUR"; checks see every Unicode space as a plain one.
+    answer = re.sub(r"[\u00a0\u2000-\u200b\u202f\u205f\u3000]", " ", answer)
     failures = []
     for check in scenario.get("answer", []):
         (kind, expected), = check.items()

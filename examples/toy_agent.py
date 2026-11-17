@@ -5,6 +5,7 @@ in one run cannot leak into the next. The model is any OpenAI-compatible endpoin
 
     gemini   (default when GEMINI_API_KEY is set) Google's OpenAI-compatible endpoint, gemini-3.5-flash-lite
     deepseek  DEEPSEEK_API_KEY, deepseek-flash
+    groq      GROQ_API_KEY, openai/gpt-oss-120b
     ollama   (default otherwise) http://127.0.0.1:11434/v1, qwen3.5:9b, no key
 
 AGENT_EVALS_BASE_URL, AGENT_EVALS_MODEL and AGENT_EVALS_API_KEY override the preset.
@@ -108,6 +109,7 @@ def make_tools():
 PROVIDERS = {
     "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "gemini-3.5-flash-lite", "GEMINI_API_KEY"),
     "deepseek": ("https://api.deepseek.com", "deepseek-flash", "DEEPSEEK_API_KEY"),
+    "groq": ("https://api.groq.com/openai/v1", "openai/gpt-oss-120b", "GROQ_API_KEY"),
     "ollama": ("http://127.0.0.1:11434/v1", "qwen3.5:9b", None),
 }
 

@@ -59,6 +59,7 @@ class AnswerChecks(unittest.TestCase):
 
     def test_regex(self):
         self.assertEqual(check_answer({"answer": [{"regex": "874[.,]65"}]}, "874,65 TRY"), [])
+        self.assertEqual(check_answer({"answer": [{"regex": "14 days"}]}, "within 14\u202fdays"), [])
 
     def test_json_shape(self):
         s = {"answer": [{"json_shape": {"id": "str", "n": "number", "tags": ["str"], "x": "any"}}]}
