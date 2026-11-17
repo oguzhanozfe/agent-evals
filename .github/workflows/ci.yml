@@ -14,3 +14,5 @@ jobs:
       - run: python -m unittest discover -s tests -t . -v
       # The committed real runs must still parse and diff (exit 1 on a regression is expected output, not a failure here).
       - run: python -m agent_evals show runs/qwen3.5-9b-t0.json
+      # The demo in replay mode: committed recorded responses, no key, no network, no model.
+      - run: python -m agent_evals demo --mode replay --html /tmp/demo.html

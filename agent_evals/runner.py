@@ -128,7 +128,8 @@ def markdown(report):
         f"| per-run pass rate | {pct(s['run_pass_rate'])} |",
         f"| flaky scenarios | {', '.join(s['flaky']) or 'none'} |",
         f"| always failing | {', '.join(s['failing']) or 'none'} |",
-        f"| latency p50 / p95 (live runs only) | {s['latency_p50_s']} s / {s['latency_p95_s']} s |",
+        f"| latency p50 / p95 (live runs only) | "
+        + (f"{s['latency_p50_s']} s / {s['latency_p95_s']} s |" if s["latency_p50_s"] is not None else "n/a |"),
     ]
     if s["tokens"]:
         lines.append(f"| tokens in / out | {s['tokens']['prompt']:,} / {s['tokens']['completion']:,} |")

@@ -1,0 +1,1 @@
+{"choices": [{"finish_reason": "stop", "index": 0, "message": {"content": "Order O1001 has been successfully refunded.", "role": "assistant"}}], "created": 1794911933, "id": "sC78aoa_LeODkdUP8rTu4QU", "model": "gemma-4-31b-it", "object": "chat.completion", "usage": {"completion_tokens": 11, "prompt_tokens": 1004, "total_tokens": 1015}}

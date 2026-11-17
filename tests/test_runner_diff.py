@@ -126,6 +126,25 @@ class Cli(unittest.TestCase):
             self.assertEqual(code, 3)  # nothing failed a check, but the suite is incomplete
 
 
+class Demo(unittest.TestCase):
+    def test_replay_reproduces_the_committed_gemma_run_without_network(self):
+        import agent_evals.adapters as adapters
+        from agent_evals import demo
+        saved = {k: os.environ.get(k) for k in ("AGENT_EVALS_PROVIDER", "AGENT_EVALS_MODEL", "AGENT_EVALS_API_KEY")}
+        lines = []
+        try:
+            report = demo.run_demo("replay", out=lines.append)
+        finally:
+            adapters.CACHE_DIR, adapters.REPLAY_ONLY = None, False
+            for k, v in saved.items():
+                os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+        recorded = json.load(open(demo.RECORDED_RUN))["summary"]
+        for key in ("pass_at_k", "pass_all_k", "run_pass_rate", "flaky", "errors"):
+            self.assertEqual(report["summary"][key], recorded[key], key)
+        self.assertTrue(lines[0].startswith("mode: replay (recorded gemma-4-31b-it"))
+        self.assertIn("1 regression(s)", "\n".join(lines))
+
+
 def flaky_network_agent(turns):
     raise ConnectionError("refused")
 

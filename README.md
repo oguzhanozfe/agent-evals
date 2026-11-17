@@ -1,8 +1,26 @@
 # agent-evals
 
-A small harness for evaluating tool-calling LLM agents. You write scenarios in JSON. The harness runs each one k times against your agent and checks the tool calls and the final answer. It reports pass@k, pass^k, flaky scenarios, latency and tokens. Its diff mode compares two runs and exits non-zero on a regression, so it can gate CI.
+A small harness for evaluating tool-calling LLM agents. JSON scenarios check which tools an agent called, with which arguments, and what it answered. Each scenario runs k times, so flaky behavior shows up. A diff of two runs exits non-zero on a regression, so it can gate CI.
 
-Plain Python 3.10+ standard library: no dependencies to install. Models are reached through OpenAI-compatible endpoints. Pick a cloud model with an env-var key (Gemini, DeepSeek) or a local [Ollama](https://ollama.com). Tests and CI need neither.
+## Try it
+
+**[Open the demo report](https://oguzhanozfe.github.io/agent-evals/)**: 15 scenarios against a toy game-store support agent (`gemma-4-31b-it`, k=3), plus a regression diff against a local `qwen3.5:9b` run.
+
+[![Demo report: pass^3 93%, one flaky scenario, regression diff](docs/screenshot.png)](https://oguzhanozfe.github.io/agent-evals/)
+
+```bash
+git clone https://github.com/oguzhanozfe/agent-evals && cd agent-evals
+python3 -m agent_evals demo          # no key, no install: Python 3.10+ standard library only
+```
+
+The demo picks a model by itself:
+1. `GEMINI_API_KEY` set → live Gemini.
+2. Otherwise, a local [Ollama](https://ollama.com) with `qwen3.5:9b` → live local.
+3. Otherwise **replay** of the recorded `gemma-4-31b-it` responses in [examples/recorded/](examples/recorded/), with no network. It prints `mode: replay (recorded gemma-4-31b-it, 2026-11-17)` and finishes in well under a second.
+
+`--mode replay|gemini|ollama` forces a choice, `-k` sets the runs per scenario, and `--html FILE` writes the report page. CI runs the replay demo on every push.
+
+**Use a real model.** Keys are optional and read from the environment only: `GEMINI_API_KEY` (free tier), `DEEPSEEK_API_KEY`, or any OpenAI-compatible endpoint through `AGENT_EVALS_BASE_URL` / `AGENT_EVALS_MODEL` / `AGENT_EVALS_API_KEY`. Without a key, use a local Ollama. See [Run it](#run-it).
 
 ## Why
 

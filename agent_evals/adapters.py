@@ -20,6 +20,7 @@ import uuid
 CACHE_DIR = os.environ.get("AGENT_EVALS_CACHE")  # set to a folder to cache model responses on disk
 SAMPLE = 0  # set by the runner: run i of k gets its own cache entries, so k samples stay independent
 CACHE_HITS = 0  # counted so the runner can keep replayed runs out of latency figures
+REPLAY_ONLY = False  # demo replay mode: a cache miss is an error, the network is never used
 
 
 def post_json(url, body, headers=None, timeout=120):
@@ -38,6 +39,8 @@ def post_json(url, body, headers=None, timeout=120):
             CACHE_HITS += 1
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
+    if REPLAY_ONLY:
+        raise LookupError("no recorded response for this request (replay mode)")
     request = urllib.request.Request(
         url, json.dumps(body).encode(), {"Content-Type": "application/json", **(headers or {})}
     )

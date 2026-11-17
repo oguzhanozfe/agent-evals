@@ -100,6 +100,10 @@ def main(argv=None):
     d = sub.add_parser("diff", help="compare two run files; exit 1 on regression")
     d.add_argument("old")
     d.add_argument("new")
+    m = sub.add_parser("demo", help="run the toy agent's scenarios with no key needed (live if possible, else replay)")
+    m.add_argument("--mode", choices=["auto", "gemini", "ollama", "replay"], default="auto")
+    m.add_argument("-k", type=int, help="runs per scenario (default: 3 in replay, 1 live)")
+    m.add_argument("--html", help="also write an HTML report here")
     s = sub.add_parser("show", help="print the summary of a run file")
     s.add_argument("run")
     args = p.parse_args(argv)
@@ -108,6 +112,10 @@ def main(argv=None):
             if args.openai and not (args.model and args.tools):
                 p.error("--openai needs --model and --tools")
             return cmd_run(args)
+        if args.cmd == "demo":
+            from .demo import run_demo
+            run_demo(args.mode, args.k, args.html)
+            return 0
         if args.cmd == "show":
             print(markdown(json.load(open(args.run, encoding="utf-8"))))
             return 0

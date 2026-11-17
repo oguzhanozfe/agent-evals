@@ -1,0 +1,1 @@
+{"choices": [{"finish_reason": "stop", "index": 0, "message": {"content": "24.99 EUR is 874.65 TRY.", "role": "assistant"}}], "created": 1794910272, "id": "Nyj8ao7mGI-TxN8P0LnYqAw", "model": "gemma-4-31b-it", "object": "chat.completion", "usage": {"completion_tokens": 16, "prompt_tokens": 706, "total_tokens": 722}}

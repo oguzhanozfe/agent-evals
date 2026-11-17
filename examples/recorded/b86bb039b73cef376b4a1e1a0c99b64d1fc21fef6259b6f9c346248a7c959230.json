@@ -1,0 +1,1 @@
+{"choices": [{"finish_reason": "stop", "index": 0, "message": {"content": "OK. I've opened a support ticket (T-1) for your missing Gem Bundle from order O2001.", "role": "assistant"}}], "created": 1794911133, "id": "iSv8aqvWDbDCvdIP6YXxyQw", "model": "gemma-4-31b-it", "object": "chat.completion", "usage": {"completion_tokens": 27, "prompt_tokens": 1108, "total_tokens": 1135}}
