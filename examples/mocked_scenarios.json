@@ -1,0 +1,1 @@
+[{"id": "mocked-order", "turns": ["Where is order O2001?"], "expect_tools": [{"name": "get_order", "args": {"order_id": "O2001"}}], "answer": [{"contains": "pending"}]}]

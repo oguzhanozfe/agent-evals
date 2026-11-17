@@ -1,0 +1,229 @@
+{
+ "meta": {
+  "adapter": "callable",
+  "target": "integrations.customer_360:agent",
+  "scenarios_file": "customer_360_scenarios.json",
+  "label": "customer-360 lab.ask, qwen3.5:9b",
+  "started": "2026-11-17T01:05:50+00:00",
+  "agent_evals": "0.1.0",
+  "k": 2
+ },
+ "scenarios": {
+  "mrr": {
+   "runs": [
+    {
+     "answer": "Total MRR on 2026-09-01 was **167,365.5 TRY**. This figure represents the sum of monthly recurring revenue from all active subscriptions across the news, sports, and TV brands on that specific date.",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT SUM(mrr) AS total_mrr FROM subscription_months WHERE month_start = '2026-09-01'"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 29.818,
+     "failures": [],
+     "passed": true
+    },
+    {
+     "answer": "Total MRR on 2026-09-01 was **167,365.5 TRY**. This figure represents the sum of monthly recurring revenue from all active subscriptions across the news, sports, and TV brands on that specific date.",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT SUM(mrr) AS total_mrr FROM subscription_months WHERE month_start = '2026-09-01'"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 70.116,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 2,
+   "errors": 0,
+   "status": "pass"
+  },
+  "customers": {
+   "runs": [
+    {
+     "answer": "",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT COUNT(*) AS distinct_customers FROM customer_360"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 74.897,
+     "failures": [
+      "answer does not match /3[,.]?097\\b/"
+     ],
+     "passed": false
+    },
+    {
+     "answer": "",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT COUNT(*) AS distinct_customers FROM customer_360"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 72.027,
+     "failures": [
+      "answer does not match /3[,.]?097\\b/"
+     ],
+     "passed": false
+    }
+   ],
+   "passes": 0,
+   "errors": 0,
+   "status": "fail"
+  },
+  "top-decline": {
+   "runs": [
+    {
+     "answer": "The decline code **`insufficient_funds`** causes the most failed first payment attempts, with **487** failures.",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, COUNT(*) AS failed_first_attempts\nFROM billing_cycles\nWHERE first_decline IS NOT NULL AND attempts = 1\nGROUP BY first_decline\nORDER BY failed_first_attempts DESC\nLIMIT 10"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, attempts, paid, COUNT(*) AS cnt\nFROM billing_cycles\nGROUP BY first_decline, attempts, paid\nORDER BY cnt DESC\nLIMIT 20"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, COUNT(*) AS failed_first_attempts\nFROM billing_cycles\nWHERE first_decline IS NOT NULL AND attempts = 1\nGROUP BY first_decline\nORDER BY failed_first_attempts DESC"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, attempts, paid, COUNT(*) AS cnt\nFROM billing_cycles\nWHERE attempts = 1\nGROUP BY first_decline, attempts, paid\nORDER BY cnt DESC\nLIMIT 20"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT p.decline_code, COUNT(*) AS cnt\nFROM payments p\nJOIN subscriptions s USING (subscription_id)\nWHERE p.attempt_no = 1 AND p.status = 'failed'\nGROUP BY p.decline_code\nORDER BY cnt DESC"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 185.121,
+     "failures": [],
+     "passed": true
+    },
+    {
+     "answer": "The decline code **`insufficient_funds`** causes the most failed first payment attempts, with **487** failures.",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, COUNT(*) AS failed_first_attempts\nFROM billing_cycles\nWHERE first_decline IS NOT NULL AND attempts = 1\nGROUP BY first_decline\nORDER BY failed_first_attempts DESC\nLIMIT 10"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, attempts, paid, COUNT(*) AS cnt\nFROM billing_cycles\nGROUP BY first_decline, attempts, paid\nORDER BY cnt DESC\nLIMIT 20"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, COUNT(*) AS failed_first_attempts\nFROM billing_cycles\nWHERE first_decline IS NOT NULL AND attempts = 1\nGROUP BY first_decline\nORDER BY failed_first_attempts DESC"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT first_decline, attempts, paid, COUNT(*) AS cnt\nFROM billing_cycles\nWHERE attempts = 1\nGROUP BY first_decline, attempts, paid\nORDER BY cnt DESC\nLIMIT 20"
+       }
+      },
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT p.decline_code, COUNT(*) AS cnt\nFROM payments p\nJOIN subscriptions s USING (subscription_id)\nWHERE p.attempt_no = 1 AND p.status = 'failed'\nGROUP BY p.decline_code\nORDER BY cnt DESC"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 172.504,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 2,
+   "errors": 0,
+   "status": "pass"
+  },
+  "tv-active": {
+   "runs": [
+    {
+     "answer": "There are **486** active TV subscriptions right now (not ended). This number represents the total count of TV brand subscriptions that have not been cancelled or expired as of the current date in the database.",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT s.brand, COUNT(*) as count FROM subscriptions s WHERE s.brand = 'tv' AND (s.ended_at IS NULL OR s.ended_at > (SELECT as_of FROM settings)) GROUP BY s.brand"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 66.82,
+     "failures": [],
+     "passed": true
+    },
+    {
+     "answer": "There are **486** active TV subscriptions right now (not ended). This number represents the total count of TV brand subscriptions that have not been cancelled or expired as of the current date in the database.",
+     "tool_calls": [
+      {
+       "name": "run_sql",
+       "arguments": {
+        "query": "SELECT s.brand, COUNT(*) as count FROM subscriptions s WHERE s.brand = 'tv' AND (s.ended_at IS NULL OR s.ended_at > (SELECT as_of FROM settings)) GROUP BY s.brand"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 78.339,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 2,
+   "errors": 0,
+   "status": "pass"
+  }
+ },
+ "summary": {
+  "scenarios": 4,
+  "runs": 8,
+  "errors": 0,
+  "pass_at_k": 0.75,
+  "pass_all_k": 0.75,
+  "run_pass_rate": 0.75,
+  "flaky": [],
+  "failing": [
+   "customers"
+  ],
+  "latency_p50_s": 72.027,
+  "latency_p95_s": 185.121,
+  "tokens": null,
+  "judge_pass_rate": null
+ }
+}

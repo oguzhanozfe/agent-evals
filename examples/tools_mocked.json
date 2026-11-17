@@ -1,0 +1,169 @@
+{
+ "system": "You are a game store support agent. Use the tools; never guess.",
+ "tools": [
+  {
+   "type": "function",
+   "function": {
+    "name": "find_player",
+    "description": "Find a player by email.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "email": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "email"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "get_order",
+    "description": "Get an order: item, price in EUR, status, purchase date, owner player_id.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "order_id": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "order_id"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "search_help",
+    "description": "Search the store's help articles.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "refund_order",
+    "description": "Refund one order.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "order_id": {
+       "type": "string"
+      },
+      "reason": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "order_id",
+      "reason"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "convert_price",
+    "description": "Convert an amount in EUR to another currency.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "amount_eur": {
+       "type": "number"
+      },
+      "currency": {
+       "type": "string",
+       "enum": [
+        "EUR",
+        "GBP",
+        "TRY",
+        "USD"
+       ]
+      }
+     },
+     "required": [
+      "amount_eur",
+      "currency"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "create_ticket",
+    "description": "Open a support ticket.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "player_id": {
+       "type": "string"
+      },
+      "details": {
+       "type": "object",
+       "properties": {
+        "category": {
+         "type": "string",
+         "enum": [
+          "delivery",
+          "payment",
+          "account",
+          "other"
+         ]
+        },
+        "order_id": {
+         "type": "string"
+        },
+        "summary": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "category",
+        "summary"
+       ]
+      }
+     },
+     "required": [
+      "player_id",
+      "details"
+     ]
+    }
+   }
+  }
+ ],
+ "mock_results": {
+  "get_order": {
+   "order_id": "O2001",
+   "player_id": "P200",
+   "item": "Gem Bundle 500",
+   "price_eur": 4.99,
+   "status": "pending",
+   "purchased": "2026-11-16"
+  },
+  "find_player": {
+   "player_id": "P200",
+   "email": "kai@example.com",
+   "name": "Kai",
+   "region": "NA"
+  },
+  "search_help": "Refunds: purchases can be refunded within 14 days of purchase if the item is unused. Refunds go back to the original payment method within 5 business days."
+ }
+}

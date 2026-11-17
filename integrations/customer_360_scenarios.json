@@ -1,0 +1,14 @@
+{"scenarios": [
+{"id": "mrr", "turns": ["What was total MRR on 2026-09-01?"],
+ "expect_tools": [{"name": "run_sql", "args": {"query": {"regex": "(?is)select.*subscription_months"}}}],
+ "answer": [{"regex": "167[,.]?365"}]},
+{"id": "customers", "turns": ["How many distinct customers are there after merging accounts across brands?"],
+ "expect_tools": [{"name": "run_sql"}],
+ "answer": [{"regex": "3[,.]?097\\b"}]},
+{"id": "top-decline", "turns": ["Which decline code causes the most failed first payment attempts, and how many?"],
+ "expect_tools": [{"name": "run_sql", "args": {"query": {"regex": "(?i)first_decline"}}}],
+ "answer": [{"contains": "insufficient"}, {"regex": "\\b487\\b"}]},
+{"id": "tv-active", "turns": ["How many tv subscriptions are active right now (not ended)?"],
+ "expect_tools": [{"name": "run_sql"}],
+ "answer": [{"regex": "\\b486\\b"}]}
+]}

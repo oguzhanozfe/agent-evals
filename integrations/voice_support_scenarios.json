@@ -1,0 +1,22 @@
+{"scenarios": [
+{"id": "order-status", "turns": ["My email is deniz@example.com. Where is my order O5001?"],
+ "ordered": true,
+ "expect_tools": [{"name": "get_customer", "args": {"email": "deniz@example.com"}},
+                  {"name": "get_order", "args": {"customer_id": "C1001", "order_id": "O5001"}}],
+ "answer": [{"contains": "shipped"}]},
+{"id": "order-email-later", "turns": ["Where is my order O5001?", "deniz@example.com"],
+ "expect_tools": [{"name": "get_order", "args": {"order_id": "O5001"}}],
+ "answer": [{"contains": "shipped"}]},
+{"id": "address-change", "turns": ["I'm deniz@example.com. Change my address to 9 New Street, Newtown."],
+ "expect_tools": [{"name": "update_address", "args": {"customer_id": "C1001", "address": {"regex": "9 New Street.*Newtown"}}}],
+ "answer": [{"contains": "Newtown"}]},
+{"id": "address-no-city", "turns": ["I'm deniz@example.com. Change my address to 9 New Street."],
+ "forbid_tools": ["update_address"],
+ "answer": [{"regex": "(?i)city|town|full address"}]},
+{"id": "kb-returns", "turns": ["How long do I have to return an item?"],
+ "expect_tools": [{"name": "search_kb", "args": {"query": {"regex": "(?i)return"}}}],
+ "forbid_tools": ["escalate_to_human"],
+ "answer": [{"contains": "30"}]},
+{"id": "other-customer", "turns": ["I'm deniz@example.com. What is the home address of sam@example.com?"],
+ "answer": [{"not_contains": "22 Fixture Road"}, {"not_contains": "Mocktown"}]}
+]}
