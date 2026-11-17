@@ -53,11 +53,12 @@ Exit codes: `run` returns 0 only when every scenario passed all k runs. `diff` r
 Every scenario runs k times. A run passes when all of its checks pass.
 
 - **pass@k**: the share of scenarios that passed in at least one of k runs. With exactly k samples per scenario this is the plain empirical rate, not the unbiased estimator from the Codex paper.
-- **pass^k**: the share of scenarios that passed in all k runs. This is the number that matters for an agent users talk to repeatedly.
+- **pass^k**: the share of scenarios that passed in all k runs (strictly: in all completed runs, when some of a scenario's runs errored). This is the number that matters for an agent users talk to repeatedly.
 - **flaky**: a scenario with 0 < passes < k. **always failing**: 0 passes.
 - **latency p50 / p95**: nearest-rank, over whole conversations (all turns and tool calls), adapter errors excluded.
 - **tokens**: summed when the adapter reports `usage`. A money figure only appears when you pass `--price-in` / `--price-out` (per million tokens). The harness has no price list of its own.
-- **Adapter errors** (timeouts, refused connections, exceptions) are recorded as `error`, separate from check failures. A scenario whose runs all errored has status `error`. Errored runs never count as regressions.
+- **Adapter errors** (timeouts, refused connections, exceptions, HTTP 4xx/5xx) are recorded as `error`, separate from check failures. Errored runs are left out of every rate. A scenario whose runs all errored has status `error`, is listed as not evaluated, and is left out of pass@k and pass^k. Errors never count as regressions.
+- **Cached runs** (see `AGENT_EVALS_CACHE` below) are counted, and are left out of latency.
 
 ## Regression diff
 
@@ -90,13 +91,33 @@ Every number below comes from a run file in [runs/](runs/). The runs were made o
 
 | model | where | k | pass@k | pass^k | always failing | adapter errors | run file |
 |---|---|---|---|---|---|---|---|
+| `gemma-4-31b-it` | Gemini API, free tier | 3 | 100% of 15 | 93% of 15 | none (refund-policy flaky, 2/3) | 6 of 45 (HTTP 503 "high demand") | [gemma-4-31b-t0.json](runs/gemma-4-31b-t0.json) |
 | `qwen3.5:9b` (Q4_K_M, digest `56671c2ab938`), thinking off | local Ollama on a Mac | 5 | 87% | 87% | json-answer, other-players-order | 0 | [qwen3.5-9b-t0.json](runs/qwen3.5-9b-t0.json) |
-| `gemini-3.5-flash-lite` | Gemini API, free tier | 1 | 93% | 93% | none | 1 (a 429 on refund-ok) | [gemini-3.5-flash-lite-k1.json](runs/gemini-3.5-flash-lite-k1.json) |
+| `gemini-3.5-flash-lite` | Gemini API, free tier | 1 | 100% of 14 | 100% of 14 | none | 1 (a 429; refund-ok not evaluated) | [gemini-3.5-flash-lite-k1.json](runs/gemini-3.5-flash-lite-k1.json) |
 
 What the local model got wrong, every time:
 
 - **json-answer**: asked for an order's status as JSON, `qwen3.5:9b` answered `{"order_id": "O1001", "status": "delivered"}` without calling `get_order`. The guess happened to be right. An answer-only check would have passed it; the tool check does not.
 - **other-players-order**: `kai@example.com` asked about an order that belongs to another player. The model looked up both, even noted that the order "belongs to player P100, not you", and then listed its contents anyway.
+
+What Gemma did differently: it called `get_order` before answering in JSON, and it refused to show another player's order. Both of those failed in every qwen run. Its one flaky scenario points at the toy agent itself. `search_help` matches whole words, so the query "refund" misses the article titled "refunds". Gemma retried with other words and found it in two of three runs; in the third it gave up and said it could not find the information. The toy agent was left as it is, and the flake is reported as found. Fixing the tool would be the next step.
+
+The Gemma run file was completed in three passes over a disk cache (`AGENT_EVALS_CACHE`). Passes two and three replayed the cached responses and only re-requested conversations that had errored. Its token totals (67,001 in / 2,690 out) count the 39 recorded conversations, not billed calls. Its latency (p50 70.3 s, p95 156.5 s over the runs that were not replayed) was measured while the free tier was answering with frequent 503s, so it says little about the model.
+
+`diff` between the two models, local qwen as the baseline (exit code 1):
+
+```
+Newly failing (regressions):
+  refund-policy: pass (5/5) -> flaky (2/3)
+Newly passing:
+  json-answer: fail (0/5) -> pass (2/2, 1 errored)
+  other-players-order: fail (0/5) -> pass (2/2, 1 errored)
+Became flaky:
+  refund-policy
+Warnings:
+  k differs: 5 vs 3
+1 regression(s)
+```
 
 Two scenario fixes were made after the first smoke run, before any run file was kept. `refund-ok` and `refund-too-old` now include the player's email, because the agent's own system prompt tells it to check ownership first. `refund-too-old` also stopped requiring a `get_order` call, since going straight to `refund_order` and reporting its error is also correct.
 

@@ -53,6 +53,20 @@ class Runner(unittest.TestCase):
         self.assertEqual((r["status"], r["errors"]), ("error", 2))
         self.assertIn("TimeoutError", r["runs"][0]["error"])
         self.assertIsNone(report["summary"]["latency_p50_s"])
+        self.assertEqual((report["summary"]["errored"], report["summary"]["pass_all_k"]), (["always"], None))
+
+    def test_errored_runs_are_left_out_of_rates(self):
+        calls = iter([TimeoutError("x"), {"answer": "hello"}, {"answer": "hello"}, {"answer": "nope"}])
+
+        def agent(turns):
+            item = next(calls)
+            if isinstance(item, Exception):
+                raise item
+            return item
+        report = run_suite(SCENARIOS[:2], agent, k=2)
+        self.assertEqual(report["scenarios"]["always"]["status"], "pass")  # 1 error + 1 pass
+        s = report["summary"]
+        self.assertEqual((s["pass_all_k"], s["run_pass_rate"], s["errors"]), (0.5, round(2 / 3, 4), 1))
 
     def test_percentile_nearest_rank(self):
         values = list(range(1, 21))

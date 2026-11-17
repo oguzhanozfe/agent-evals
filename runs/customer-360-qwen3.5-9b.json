@@ -212,11 +212,14 @@
  },
  "summary": {
   "scenarios": 4,
+  "scenarios_evaluated": 4,
   "runs": 8,
   "errors": 0,
+  "cached_runs": 0,
   "pass_at_k": 0.75,
   "pass_all_k": 0.75,
   "run_pass_rate": 0.75,
+  "errored": [],
   "flaky": [],
   "failing": [
    "customers"

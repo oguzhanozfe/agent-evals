@@ -15,7 +15,7 @@ def diff(old, new):
         out["warnings"].append(f"k differs: {old['meta'].get('k')} vs {new['meta'].get('k')}")
     for sid in sorted(set(a) & set(b)):
         before, after = a[sid]["status"], b[sid]["status"]
-        line = f"{sid}: {before} ({a[sid]['passes']}/{len(a[sid]['runs'])}) -> {after} ({b[sid]['passes']}/{len(b[sid]['runs'])})"
+        line = f"{sid}: {before} ({ratio(a[sid])}) -> {after} ({ratio(b[sid])})"
         if "error" in (before, after):
             if before != after:
                 out["errored"].append(line)
@@ -29,6 +29,13 @@ def diff(old, new):
         if before == "flaky" and after != "flaky":
             out["flaky_fixed"].append(sid)
     return out
+
+
+def ratio(scenario):
+    """passes / completed runs, plus errored runs when there were any."""
+    errors = scenario.get("errors", 0)
+    text = f"{scenario['passes']}/{len(scenario['runs']) - errors}"
+    return text + (f", {errors} errored" if errors else "")
 
 
 def render(d):

@@ -1632,11 +1632,14 @@
  },
  "summary": {
   "scenarios": 15,
+  "scenarios_evaluated": 15,
   "runs": 75,
   "errors": 0,
+  "cached_runs": 0,
   "pass_at_k": 0.8667,
   "pass_all_k": 0.8667,
   "run_pass_rate": 0.8667,
+  "errored": [],
   "flaky": [],
   "failing": [
    "json-answer",

@@ -20,13 +20,15 @@ Reply with PASS or FAIL on the first line, then one sentence why."""
 
 
 def run_once(scenario, agent, judge=None):
-    started = time.perf_counter()
+    started, hits = time.perf_counter(), adapters.CACHE_HITS
     try:
         run = normalize(agent(scenario["turns"]))
     except Exception as e:  # noqa: BLE001 - an adapter error is recorded, never fatal to the suite
         return {"error": f"{type(e).__name__}: {e}"[:300], "passed": False,
                 "latency_s": round(time.perf_counter() - started, 3)}
     run["latency_s"] = round(time.perf_counter() - started, 3)
+    if adapters.CACHE_HITS > hits:
+        run["cache_hits"] = adapters.CACHE_HITS - hits
     run["failures"] = check_run(scenario, run)
     run["passed"] = not run["failures"]
     if judge and scenario.get("judge"):
@@ -79,20 +81,27 @@ def run_suite(scenarios, agent, k=1, judge=None, meta=None, progress=None):
 
 
 def summarize(results, meta):
-    n = len(results)
+    evaluated = [s for s in results.values() if s["status"] != "error"]  # at least one completed run
+    n = len(evaluated)
     runs = [r for s in results.values() for r in s["runs"]]
-    latencies = [r["latency_s"] for r in runs if "error" not in r]
+    done = [r for r in runs if "error" not in r]
+    # Replayed (cached) runs and errors say nothing about latency.
+    latencies = [r["latency_s"] for r in runs if "error" not in r and not r.get("cache_hits")]
     prompt = sum(r.get("usage", {}).get("prompt_tokens", 0) for r in runs)
     completion = sum(r.get("usage", {}).get("completion_tokens", 0) for r in runs)
     judged = [r["judge"]["verdict"] for r in runs if r.get("judge", {}).get("verdict") is not None]
     summary = {
-        "scenarios": n,
+        "scenarios": len(results),
+        "scenarios_evaluated": n,
         "runs": len(runs),
         "errors": sum("error" in r for r in runs),
+        "cached_runs": sum(bool(r.get("cache_hits")) for r in runs),
         # With exactly k samples per scenario: pass@k = at least one pass, pass^k = all k pass.
-        "pass_at_k": round(sum(s["passes"] > 0 for s in results.values()) / n, 4) if n else None,
-        "pass_all_k": round(sum(s["status"] == "pass" for s in results.values()) / n, 4) if n else None,
-        "run_pass_rate": round(sum(r["passed"] for r in runs) / len(runs), 4) if runs else None,
+        # Over scenarios with at least one completed run; errored runs are left out of every rate.
+        "pass_at_k": round(sum(s["passes"] > 0 for s in evaluated) / n, 4) if n else None,
+        "pass_all_k": round(sum(s["status"] == "pass" for s in evaluated) / n, 4) if n else None,
+        "run_pass_rate": round(sum(r["passed"] for r in done) / len(done), 4) if done else None,
+        "errored": sorted(i for i, s in results.items() if s["status"] == "error"),
         "flaky": sorted(i for i, s in results.items() if s["status"] == "flaky"),
         "failing": sorted(i for i, s in results.items() if s["status"] == "fail"),
         "latency_p50_s": percentile(latencies, 50),
@@ -111,13 +120,15 @@ def markdown(report):
     pct = lambda v: "n/a" if v is None else f"{v:.0%}"  # noqa: E731
     lines = [
         f"| metric | value |", "|---|---|",
-        f"| scenarios x k | {s['scenarios']} x {k} = {s['runs']} runs ({s['errors']} adapter errors) |",
+        f"| scenarios x k | {s['scenarios']} x {k} = {s['runs']} runs ({s['errors']} adapter errors, "
+        f"{s.get('cached_runs', 0)} replayed from cache) |",
+        f"| scenarios evaluated (>= 1 completed run) | {s.get('scenarios_evaluated', s['scenarios'])} |",
         f"| pass@{k} (any of {k} passes) | {pct(s['pass_at_k'])} |",
         f"| pass^{k} (all {k} pass) | {pct(s['pass_all_k'])} |",
         f"| per-run pass rate | {pct(s['run_pass_rate'])} |",
         f"| flaky scenarios | {', '.join(s['flaky']) or 'none'} |",
         f"| always failing | {', '.join(s['failing']) or 'none'} |",
-        f"| latency p50 / p95 | {s['latency_p50_s']} s / {s['latency_p95_s']} s |",
+        f"| latency p50 / p95 (live runs only) | {s['latency_p50_s']} s / {s['latency_p95_s']} s |",
     ]
     if s["tokens"]:
         lines.append(f"| tokens in / out | {s['tokens']['prompt']:,} / {s['tokens']['completion']:,} |")
@@ -125,8 +136,9 @@ def markdown(report):
         lines.append(f"| cost (from given prices) | {s['cost']} |")
     if s["judge_pass_rate"] is not None:
         lines.append(f"| LLM judge pass rate (weaker evidence) | {pct(s['judge_pass_rate'])} |")
-    lines += ["", "| scenario | passes | status | first failure |", "|---|---|---|---|"]
+    lines += ["", "| scenario | passes / completed | errors | status | first failure |", "|---|---|---|---|---|"]
     for sid, r in report["scenarios"].items():
-        first = next((f for run in r["runs"] for f in run.get("failures") or [run.get("error")] if f), "")
-        lines.append(f"| {sid} | {r['passes']}/{len(r['runs'])} | {r['status']} | {first[:90].replace('|', '/')} |")
+        first = next((f for run in r["runs"] for f in run.get("failures") or [] if f), "")
+        done = len(r["runs"]) - r["errors"]
+        lines.append(f"| {sid} | {r['passes']}/{done} | {r['errors']} | {r['status']} | {first[:90].replace('|', '/')} |")
     return "\n".join(lines)

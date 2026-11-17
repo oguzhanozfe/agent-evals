@@ -438,11 +438,16 @@
  },
  "summary": {
   "scenarios": 15,
+  "scenarios_evaluated": 14,
   "runs": 15,
   "errors": 1,
-  "pass_at_k": 0.9333,
-  "pass_all_k": 0.9333,
-  "run_pass_rate": 0.9333,
+  "cached_runs": 0,
+  "pass_at_k": 1.0,
+  "pass_all_k": 1.0,
+  "run_pass_rate": 1.0,
+  "errored": [
+   "refund-ok"
+  ],
   "flaky": [],
   "failing": [],
   "latency_p50_s": 7.474,

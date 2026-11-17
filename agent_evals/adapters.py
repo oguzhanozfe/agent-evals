@@ -19,6 +19,7 @@ import uuid
 
 CACHE_DIR = os.environ.get("AGENT_EVALS_CACHE")  # set to a folder to cache model responses on disk
 SAMPLE = 0  # set by the runner: run i of k gets its own cache entries, so k samples stay independent
+CACHE_HITS = 0  # counted so the runner can keep replayed runs out of latency figures
 
 
 def post_json(url, body, headers=None, timeout=120):
@@ -33,6 +34,8 @@ def post_json(url, body, headers=None, timeout=120):
         key = hashlib.sha256(json.dumps([url, body, SAMPLE], sort_keys=True).encode()).hexdigest()
         path = os.path.join(CACHE_DIR, key + ".json")
         if os.path.exists(path):
+            global CACHE_HITS
+            CACHE_HITS += 1
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
     request = urllib.request.Request(
@@ -131,7 +134,7 @@ class HTTPAgent:
         return {"answer": answer, "tool_calls": calls, "usage": usage}
 
 
-THOUGHT = re.compile(r"<thought>.*?</thought>", re.S)  # Gemma on the Gemini API puts these in content
+THOUGHT = re.compile(r"<thought>.*?</thought>|</?thought>", re.S)  # Gemma on the Gemini API puts these in content
 
 
 class OpenAIChatAgent:
