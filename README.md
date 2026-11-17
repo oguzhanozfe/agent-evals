@@ -109,7 +109,7 @@ Every number below comes from a run file in [runs/](runs/). The runs were made o
 
 | model | where | k | pass@k | pass^k | always failing | adapter errors | run file |
 |---|---|---|---|---|---|---|---|
-| `gemma-4-31b-it` | Gemini API, free tier | 3 | 100% of 15 | 93% of 15 | none (refund-policy flaky, 2/3) | 6 of 45 (HTTP 503 "high demand") | [gemma-4-31b-t0.json](runs/gemma-4-31b-t0.json) |
+| `gemma-4-31b-it` | Gemini API, free tier | 3 | 100% of 15 | 93% of 15 | none (refund-policy flaky, 2/3) | 1 of 45 (HTTP 503 "high demand") | [gemma-4-31b-t0.json](runs/gemma-4-31b-t0.json) |
 | `qwen3.5:9b` (Q4_K_M, digest `56671c2ab938`), thinking off | local Ollama on a Mac | 5 | 87% | 87% | json-answer, other-players-order | 0 | [qwen3.5-9b-t0.json](runs/qwen3.5-9b-t0.json) |
 | `gemini-3.5-flash-lite` | Gemini API, free tier | 1 | 100% of 14 | 100% of 14 | none | 1 (a 429; refund-ok not evaluated) | [gemini-3.5-flash-lite-k1.json](runs/gemini-3.5-flash-lite-k1.json) |
 
@@ -120,7 +120,7 @@ What the local model got wrong, every time:
 
 What Gemma did differently: it called `get_order` before answering in JSON, and it refused to show another player's order. Both of those failed in every qwen run. Its one flaky scenario points at the toy agent itself. `search_help` matches whole words, so the query "refund" misses the article titled "refunds". Gemma retried with other words and found it in two of three runs; in the third it gave up and said it could not find the information. The toy agent was left as it is, and the flake is reported as found. Fixing the tool would be the next step.
 
-The Gemma run file was completed in three passes over a disk cache (`AGENT_EVALS_CACHE`). Passes two and three replayed the cached responses and only re-requested conversations that had errored. Its token totals (67,001 in / 2,690 out) count the 39 recorded conversations, not billed calls. Its latency (p50 70.3 s, p95 156.5 s over the runs that were not replayed) was measured while the free tier was answering with frequent 503s, so it says little about the model.
+The Gemma run file was completed over several passes with a disk cache (`AGENT_EVALS_CACHE`). Each later pass replayed the cached responses and only re-requested the conversations that had errored, mostly with Gemini free-tier 503s. One conversation (`other-players-order`, sample 1) got a 503 on every attempt and is still unevaluated. Its token totals (76,224 in / 2,995 out) count the 44 recorded conversations, not billed calls. No latency is reported for it: every completed conversation was at least partly replayed from the cache, so there is nothing honest to measure. These recorded responses are also what the no-key demo replays.
 
 `diff` between the two models, local qwen as the baseline (exit code 1):
 
@@ -128,7 +128,7 @@ The Gemma run file was completed in three passes over a disk cache (`AGENT_EVALS
 Newly failing (regressions):
   refund-policy: pass (5/5) -> flaky (2/3)
 Newly passing:
-  json-answer: fail (0/5) -> pass (2/2, 1 errored)
+  json-answer: fail (0/5) -> pass (3/3)
   other-players-order: fail (0/5) -> pass (2/2, 1 errored)
 Became flaky:
   refund-policy

@@ -4,7 +4,7 @@
   "target": "examples.toy_agent:agent",
   "scenarios_file": "scenarios.json",
   "label": "gemma-4-31b-it via Gemini API, t=0",
-  "started": "2026-11-17T10:51:07+00:00",
+  "started": "2026-11-17T11:54:43+00:00",
   "agent_evals": "0.1.0",
   "k": 3
  },
@@ -12,7 +12,7 @@
   "order-status": {
    "runs": [
     {
-     "answer": "Order O2001 is currently pending.</thought>",
+     "answer": "Order O2001 is currently pending.",
      "tool_calls": [
       {
        "name": "get_order",
@@ -31,9 +31,23 @@
      "passed": true
     },
     {
-     "error": "HTTPError: HTTP Error 503: Service Unavailable",
-     "passed": false,
-     "latency_s": 56.17
+     "answer": "Order O2001 is currently pending.",
+     "tool_calls": [
+      {
+       "name": "get_order",
+       "arguments": {
+        "order_id": "O2001"
+       }
+      }
+     ],
+     "usage": {
+      "prompt_tokens": 1219,
+      "completion_tokens": 22
+     },
+     "latency_s": 0.0,
+     "cache_hits": 2,
+     "failures": [],
+     "passed": true
     },
     {
      "answer": "Your order O2001 is currently pending.",
@@ -49,20 +63,20 @@
       "prompt_tokens": 1220,
       "completion_tokens": 33
      },
-     "latency_s": 0.005,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
     }
    ],
-   "passes": 2,
-   "errors": 1,
+   "passes": 3,
+   "errors": 0,
    "status": "pass"
   },
   "order-item": {
    "runs": [
     {
-     "answer": "In order O1001, you bought the Starter Pack.</thought>",
+     "answer": "In order O1001, you bought the Starter Pack.",
      "tool_calls": [
       {
        "name": "get_order",
@@ -81,7 +95,7 @@
      "passed": true
     },
     {
-     "answer": "In order O1001, you bought the Starter Pack.</thought>",
+     "answer": "In order O1001, you bought the Starter Pack.",
      "tool_calls": [
       {
        "name": "get_order",
@@ -100,7 +114,7 @@
      "passed": true
     },
     {
-     "answer": "In order O1001, you bought the Starter Pack.</thought>",
+     "answer": "In order O1001, you bought the Starter Pack.",
      "tool_calls": [
       {
        "name": "get_order",
@@ -113,7 +127,7 @@
       "prompt_tokens": 1213,
       "completion_tokens": 22
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -126,7 +140,7 @@
   "player-region": {
    "runs": [
     {
-     "answer": "Your account is in the NA region.</thought>",
+     "answer": "Your account is in the NA region.",
      "tool_calls": [
       {
        "name": "find_player",
@@ -139,13 +153,13 @@
       "prompt_tokens": 1272,
       "completion_tokens": 20
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
     },
     {
-     "answer": "Your account is in the NA region.</thought>",
+     "answer": "Your account is in the NA region.",
      "tool_calls": [
       {
        "name": "find_player",
@@ -158,13 +172,13 @@
       "prompt_tokens": 1216,
       "completion_tokens": 20
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
     },
     {
-     "answer": "Your account is in the NA region.</thought>",
+     "answer": "Your account is in the NA region.",
      "tool_calls": [
       {
        "name": "find_player",
@@ -177,7 +191,7 @@
       "prompt_tokens": 1216,
       "completion_tokens": 20
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -266,7 +280,7 @@
       "prompt_tokens": 4325,
       "completion_tokens": 216
      },
-     "latency_s": 0.002,
+     "latency_s": 0.001,
      "cache_hits": 6,
      "failures": [],
      "passed": true
@@ -380,19 +394,46 @@
       "prompt_tokens": 2492,
       "completion_tokens": 84
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 3,
      "failures": [],
      "passed": true
     },
     {
-     "error": "HTTPError: HTTP Error 503: Service Unavailable",
-     "passed": false,
-     "latency_s": 6.303
+     "answer": "Order O1001 has been successfully refunded.",
+     "tool_calls": [
+      {
+       "name": "find_player",
+       "arguments": {
+        "email": "ana@example.com"
+       }
+      },
+      {
+       "name": "get_order",
+       "arguments": {
+        "order_id": "O1001"
+       }
+      },
+      {
+       "name": "refund_order",
+       "arguments": {
+        "order_id": "O1001",
+        "reason": "bought it by mistake"
+       }
+      }
+     ],
+     "usage": {
+      "prompt_tokens": 2432,
+      "completion_tokens": 85
+     },
+     "latency_s": 0.001,
+     "cache_hits": 3,
+     "failures": [],
+     "passed": true
     }
    ],
-   "passes": 2,
-   "errors": 1,
+   "passes": 3,
+   "errors": 0,
    "status": "pass"
   },
   "refund-too-old": {
@@ -424,8 +465,8 @@
       "prompt_tokens": 3103,
       "completion_tokens": 158
      },
-     "latency_s": 43.707,
-     "cache_hits": 3,
+     "latency_s": 0.001,
+     "cache_hits": 4,
      "failures": [],
      "passed": true
     },
@@ -456,25 +497,52 @@
       "prompt_tokens": 3103,
       "completion_tokens": 158
      },
-     "latency_s": 50.536,
-     "cache_hits": 2,
+     "latency_s": 0.001,
+     "cache_hits": 4,
      "failures": [],
      "passed": true
     },
     {
-     "error": "HTTPError: HTTP Error 503: Service Unavailable",
-     "passed": false,
-     "latency_s": 24.945
+     "answer": "I'm sorry, but order O1002 cannot be refunded because it was purchased more than 14 days ago.",
+     "tool_calls": [
+      {
+       "name": "find_player",
+       "arguments": {
+        "email": "ana@example.com"
+       }
+      },
+      {
+       "name": "get_order",
+       "arguments": {
+        "order_id": "O1002"
+       }
+      },
+      {
+       "name": "refund_order",
+       "arguments": {
+        "order_id": "O1002",
+        "reason": "I don't play it any more"
+       }
+      }
+     ],
+     "usage": {
+      "prompt_tokens": 3103,
+      "completion_tokens": 158
+     },
+     "latency_s": 0.001,
+     "cache_hits": 4,
+     "failures": [],
+     "passed": true
     }
    ],
-   "passes": 2,
-   "errors": 1,
+   "passes": 3,
+   "errors": 0,
    "status": "pass"
   },
   "multi-turn-email": {
    "runs": [
     {
-     "answer": "Your account is in the EU region.</thought>",
+     "answer": "Your account is in the EU region.",
      "tool_calls": [
       {
        "name": "find_player",
@@ -487,13 +555,13 @@
       "prompt_tokens": 1880,
       "completion_tokens": 37
      },
-     "latency_s": 0.003,
+     "latency_s": 0.001,
      "cache_hits": 3,
      "failures": [],
      "passed": true
     },
     {
-     "answer": "Your account is in the EU region.</thought>",
+     "answer": "Your account is in the EU region.",
      "tool_calls": [
       {
        "name": "find_player",
@@ -506,13 +574,13 @@
       "prompt_tokens": 1968,
       "completion_tokens": 37
      },
-     "latency_s": 64.709,
-     "cache_hits": 1,
+     "latency_s": 0.001,
+     "cache_hits": 3,
      "failures": [],
      "passed": true
     },
     {
-     "answer": "Your account is in the EU region.</thought>",
+     "answer": "Your account is in the EU region.",
      "tool_calls": [
       {
        "name": "find_player",
@@ -525,7 +593,7 @@
       "prompt_tokens": 1880,
       "completion_tokens": 37
      },
-     "latency_s": 0.003,
+     "latency_s": 0.001,
      "cache_hits": 3,
      "failures": [],
      "passed": true
@@ -552,7 +620,7 @@
       "prompt_tokens": 1244,
       "completion_tokens": 42
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -572,7 +640,7 @@
       "prompt_tokens": 1244,
       "completion_tokens": 42
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -592,7 +660,8 @@
       "prompt_tokens": 1244,
       "completion_tokens": 42
      },
-     "latency_s": 49.144,
+     "latency_s": 0.0,
+     "cache_hits": 2,
      "failures": [],
      "passed": true
     }
@@ -604,7 +673,7 @@
   "json-answer": {
    "runs": [
     {
-     "answer": "```json\n{\n  \"order_id\": \"O1001\",\n  \"status\": \"delivered\"\n}\n```</thought>",
+     "answer": "```json\n{\n  \"order_id\": \"O1001\",\n  \"status\": \"delivered\"\n}\n```",
      "tool_calls": [
       {
        "name": "get_order",
@@ -617,13 +686,13 @@
       "prompt_tokens": 1270,
       "completion_tokens": 22
      },
-     "latency_s": 0.003,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
     },
     {
-     "answer": "```json\n{\n  \"order_id\": \"O1001\",\n  \"status\": \"delivered\"\n}\n```</thought>",
+     "answer": "```json\n{\n  \"order_id\": \"O1001\",\n  \"status\": \"delivered\"\n}\n```",
      "tool_calls": [
       {
        "name": "get_order",
@@ -636,19 +705,33 @@
       "prompt_tokens": 1270,
       "completion_tokens": 22
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
     },
     {
-     "error": "HTTPError: HTTP Error 503: Service Unavailable",
-     "passed": false,
-     "latency_s": 43.731
+     "answer": "```json\n{\n  \"order_id\": \"O1001\",\n  \"status\": \"delivered\"\n}\n```",
+     "tool_calls": [
+      {
+       "name": "get_order",
+       "arguments": {
+        "order_id": "O1001"
+       }
+      }
+     ],
+     "usage": {
+      "prompt_tokens": 1270,
+      "completion_tokens": 22
+     },
+     "latency_s": 0.0,
+     "cache_hits": 2,
+     "failures": [],
+     "passed": true
     }
    ],
-   "passes": 2,
-   "errors": 1,
+   "passes": 3,
+   "errors": 0,
    "status": "pass"
   },
   "smalltalk-no-tools": {
@@ -660,7 +743,7 @@
       "prompt_tokens": 533,
       "completion_tokens": 10
      },
-     "latency_s": 0.002,
+     "latency_s": 0.0,
      "cache_hits": 1,
      "failures": [],
      "passed": true
@@ -672,7 +755,7 @@
       "prompt_tokens": 533,
       "completion_tokens": 10
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 1,
      "failures": [],
      "passed": true
@@ -710,7 +793,7 @@
       "prompt_tokens": 1156,
       "completion_tokens": 32
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -729,7 +812,7 @@
       "prompt_tokens": 1156,
       "completion_tokens": 32
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -748,7 +831,7 @@
       "prompt_tokens": 1156,
       "completion_tokens": 32
      },
-     "latency_s": 0.001,
+     "latency_s": 0.0,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -767,7 +850,8 @@
       "prompt_tokens": 547,
       "completion_tokens": 25
      },
-     "latency_s": 28.969,
+     "latency_s": 0.0,
+     "cache_hits": 1,
      "failures": [],
      "passed": true
     },
@@ -778,7 +862,7 @@
       "prompt_tokens": 547,
       "completion_tokens": 25
      },
-     "latency_s": 0.002,
+     "latency_s": 0.0,
      "cache_hits": 1,
      "failures": [],
      "passed": true
@@ -805,7 +889,7 @@
     {
      "error": "HTTPError: HTTP Error 503: Service Unavailable",
      "passed": false,
-     "latency_s": 82.095
+     "latency_s": 6.43
     },
     {
      "answer": "I'm sorry, but I cannot provide information for that order as it is not associated with your account.",
@@ -827,7 +911,8 @@
       "prompt_tokens": 1390,
       "completion_tokens": 64
      },
-     "latency_s": 74.634,
+     "latency_s": 0.001,
+     "cache_hits": 2,
      "failures": [],
      "passed": true
     },
@@ -851,7 +936,7 @@
       "prompt_tokens": 1390,
       "completion_tokens": 64
      },
-     "latency_s": 0.003,
+     "latency_s": 0.001,
      "cache_hits": 2,
      "failures": [],
      "passed": true
@@ -894,7 +979,8 @@
       "prompt_tokens": 3276,
       "completion_tokens": 223
      },
-     "latency_s": 156.507,
+     "latency_s": 0.001,
+     "cache_hits": 4,
      "failures": [],
      "passed": true
     },
@@ -929,7 +1015,7 @@
       "prompt_tokens": 3277,
       "completion_tokens": 223
      },
-     "latency_s": 0.003,
+     "latency_s": 0.001,
      "cache_hits": 4,
      "failures": [],
      "passed": true
@@ -978,7 +1064,7 @@
   "hacked-account": {
    "runs": [
     {
-     "answer": "Please reset your password from the login screen and enable two-factor authentication. Then, contact support@example.com with your player ID. Note that our staff will never ask for your password.</thought>",
+     "answer": "Please reset your password from the login screen and enable two-factor authentication. Then, contact support@example.com with your player ID. Note that our staff will never ask for your password.",
      "tool_calls": [
       {
        "name": "search_help",
@@ -1010,18 +1096,33 @@
       "prompt_tokens": 1226,
       "completion_tokens": 58
      },
-     "latency_s": 70.26,
+     "latency_s": 0.001,
+     "cache_hits": 2,
      "failures": [],
      "passed": true
     },
     {
-     "error": "HTTPError: HTTP Error 503: Service Unavailable",
-     "passed": false,
-     "latency_s": 28.304
+     "answer": "Please reset your password from the login screen and enable two-factor authentication. Then, contact support@example.com with your player ID. Note that our staff will never ask for your password.",
+     "tool_calls": [
+      {
+       "name": "search_help",
+       "arguments": {
+        "query": "hacked account"
+       }
+      }
+     ],
+     "usage": {
+      "prompt_tokens": 1199,
+      "completion_tokens": 18
+     },
+     "latency_s": 0.0,
+     "cache_hits": 2,
+     "failures": [],
+     "passed": true
     }
    ],
-   "passes": 2,
-   "errors": 1,
+   "passes": 3,
+   "errors": 0,
    "status": "pass"
   }
  },
@@ -1029,21 +1130,21 @@
   "scenarios": 15,
   "scenarios_evaluated": 15,
   "runs": 45,
-  "errors": 6,
-  "cached_runs": 34,
+  "errors": 1,
+  "cached_runs": 44,
   "pass_at_k": 1.0,
   "pass_all_k": 0.9333,
-  "run_pass_rate": 0.9744,
+  "run_pass_rate": 0.9773,
   "errored": [],
   "flaky": [
    "refund-policy"
   ],
   "failing": [],
-  "latency_p50_s": 70.26,
-  "latency_p95_s": 156.507,
+  "latency_p50_s": null,
+  "latency_p95_s": null,
   "tokens": {
-   "prompt": 67001,
-   "completion": 2690
+   "prompt": 76224,
+   "completion": 2995
   },
   "judge_pass_rate": null
  }
