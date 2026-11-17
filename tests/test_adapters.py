@@ -114,6 +114,28 @@ class Adapters(StubServer):
         self.assertEqual(impls["get_order"](order_id="x"), "ok")
 
 
+class JudgeThroughCli(StubServer):
+    def test_judge_verdict_is_reported_and_thoughts_are_stripped(self):
+        import io
+        import os
+        from contextlib import redirect_stderr, redirect_stdout
+        from agent_evals.__main__ import main
+        Stub.replies = [{"choices": [{"message": {"content": "<thought>hmm</thought>FAIL\nNo steps given."}}]}]
+        with tempfile.TemporaryDirectory() as tmp:
+            scenarios, out = os.path.join(tmp, "s.json"), os.path.join(tmp, "run.json")
+            with open(scenarios, "w") as f:
+                json.dump([{"id": "j", "turns": ["help"], "judge": {"rubric": "gives steps"}}], f)
+            with redirect_stdout(io.StringIO()) as stdout, redirect_stderr(io.StringIO()):
+                code = main(["run", scenarios, "--agent", "tests.test_runner_diff:echo_agent", "--out", out,
+                             "--judge-model", "judge", "--judge-base-url", self.base])
+            run = json.load(open(out))["scenarios"]["j"]["runs"][0]
+        self.assertEqual(code, 0)  # the judge never gates
+        self.assertTrue(run["passed"])
+        self.assertIs(run["judge"]["verdict"], False)
+        self.assertIn("rubric: gives steps", Stub.seen[0][1]["messages"][0]["content"].lower())
+        self.assertIn("weaker evidence", stdout.getvalue())
+
+
 class RateLimitsAndCache(StubServer):
     def test_short_429_is_retried_once(self):
         Stub.replies = [(429, {"error": "slow down, retry in 0.01s please"}), {"ok": 1}]

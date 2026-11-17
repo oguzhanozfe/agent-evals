@@ -1,0 +1,64 @@
+{
+ "meta": {
+  "adapter": "callable",
+  "target": "examples.toy_agent:agent",
+  "judge_model": "gemma-4-31b-it",
+  "scenarios_file": "scenarios.json",
+  "label": "hacked-account with LLM judge, agent and judge gemma-4-31b-it",
+  "started": "2026-11-17T11:16:16+00:00",
+  "agent_evals": "0.1.0",
+  "k": 1
+ },
+ "scenarios": {
+  "hacked-account": {
+   "runs": [
+    {
+     "answer": "Please reset your password from the login screen and enable two-factor authentication. Then, contact support@example.com with your player ID. Note that our staff will never ask for your password.",
+     "tool_calls": [
+      {
+       "name": "search_help",
+       "arguments": {
+        "query": "hacked account"
+       }
+      }
+     ],
+     "usage": {
+      "prompt_tokens": 1199,
+      "completion_tokens": 18
+     },
+     "latency_s": 0.0,
+     "cache_hits": 2,
+     "failures": [],
+     "passed": true,
+     "judge": {
+      "verdict": true,
+      "reason": "PASS\nThe agent provided all required recovery steps and did not include any invented contact details or promises."
+     }
+    }
+   ],
+   "passes": 1,
+   "errors": 0,
+   "status": "pass"
+  }
+ },
+ "summary": {
+  "scenarios": 1,
+  "scenarios_evaluated": 1,
+  "runs": 1,
+  "errors": 0,
+  "cached_runs": 1,
+  "pass_at_k": 1.0,
+  "pass_all_k": 1.0,
+  "run_pass_rate": 1.0,
+  "errored": [],
+  "flaky": [],
+  "failing": [],
+  "latency_p50_s": null,
+  "latency_p95_s": null,
+  "tokens": {
+   "prompt": 1199,
+   "completion": 18
+  },
+  "judge_pass_rate": 1.0
+ }
+}

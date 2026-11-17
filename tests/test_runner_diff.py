@@ -121,6 +121,13 @@ class Cli(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("pass^2", stdout.getvalue())
             self.assertEqual(json.load(open(out))["summary"]["pass_all_k"], 1.0)
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = main(["run", scenarios, "--agent", "tests.test_runner_diff:flaky_network_agent"])
+            self.assertEqual(code, 3)  # nothing failed a check, but the suite is incomplete
+
+
+def flaky_network_agent(turns):
+    raise ConnectionError("refused")
 
 
 def echo_agent(turns):

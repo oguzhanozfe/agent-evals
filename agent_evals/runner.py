@@ -41,7 +41,7 @@ def grade(chat, scenario, answer):
     prompt = JUDGE_PROMPT.format(turns="\n".join(scenario["turns"]), answer=answer,
                                  rubric=scenario["judge"]["rubric"])
     try:
-        text = chat([{"role": "user", "content": prompt}])[0].get("content") or ""
+        text = adapters.THOUGHT.sub("", chat([{"role": "user", "content": prompt}])[0].get("content") or "")
     except Exception as e:  # noqa: BLE001
         return {"verdict": None, "reason": f"judge error: {type(e).__name__}"}
     first = text.strip().splitlines()[0] if text.strip() else ""

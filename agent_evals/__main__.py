@@ -1,6 +1,7 @@
 """Command line: python -m agent_evals run|diff|show ...
 
-Exit codes: run 0 = every scenario passed all k runs, 1 = some did not; diff 0 = no regression,
+Exit codes: run 0 = every run completed and passed, 1 = some run failed a check, 3 = no check failed but
+some runs hit adapter errors (timeouts, HTTP errors), so the suite is incomplete; diff 0 = no regression,
 1 = regression; 2 = bad input for either.
 """
 import argparse
@@ -46,7 +47,8 @@ def cmd_run(args):
     judge = None
     if args.judge_model:
         judge = OpenAIChatAgent(args.judge_base_url, args.judge_model, None, {},
-                                api_key=os.environ.get(args.api_key_env), reasoning_effort=args.reasoning_effort).chat
+                                api_key=os.environ.get(args.judge_api_key_env or args.api_key_env),
+                                reasoning_effort=args.reasoning_effort).chat
         meta["judge_model"] = args.judge_model
     meta.update({"scenarios_file": os.path.basename(args.scenarios), "label": args.label,
                  "started": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -65,7 +67,10 @@ def cmd_run(args):
         with open(args.out, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=1, ensure_ascii=False)
     print(markdown(report))
-    return 0 if report["summary"]["pass_all_k"] == 1 else 1
+    runs = [r for sc in report["scenarios"].values() for r in sc["runs"]]
+    if any("error" not in r and not r["passed"] for r in runs):
+        return 1
+    return 3 if any("error" in r for r in runs) else 0
 
 
 def main(argv=None):
@@ -89,6 +94,7 @@ def main(argv=None):
     r.add_argument("--label", default="")
     r.add_argument("--judge-model", help="optional LLM judge for scenarios with a rubric; reported, never gating")
     r.add_argument("--judge-base-url", default="http://127.0.0.1:11434/v1")
+    r.add_argument("--judge-api-key-env", help="env var holding the judge's API key (default: --api-key-env)")
     r.add_argument("--price-in", type=float, help="price per million prompt tokens, for a cost figure")
     r.add_argument("--price-out", type=float, help="price per million completion tokens")
     d = sub.add_parser("diff", help="compare two run files; exit 1 on regression")

@@ -23,7 +23,7 @@ python3 -m agent_evals show runs/qwen3.5-9b-t0.json            # summary of a ru
 python3 -m agent_evals diff runs/qwen3.5-9b-t0.json runs/mine.json  # exit 1 on regression
 ```
 
-Exit codes: `run` returns 0 only when every scenario passed all k runs. `diff` returns 1 on any regression. Both return 2 on bad input.
+Exit codes: `run` returns 0 only when every run completed and passed. It returns 1 when any run failed a check, and 3 when nothing failed but some runs hit adapter errors (the suite is incomplete). `diff` returns 1 on any regression. Both return 2 on bad input.
 
 ## Scenarios
 
@@ -130,7 +130,7 @@ Two scenario fixes were made after the first smoke run, before any run file was 
 | customer-360-payments-lab `lab.ask` | `qwen3.5:9b`, local, its default thinking | 2 | 3 of 4 scenarios pass in both runs. `customers` fails in both: the agent ran a sensible `COUNT(*)` query and then returned an **empty answer**. | [customer-360-qwen3.5-9b.json](runs/customer-360-qwen3.5-9b.json) |
 | voice-support-agent `agent.send` | chat `gemma-4-31b-it` (Gemini API), embeddings `qwen3-embedding:0.6b` local | 1 | 4 of 4 evaluated scenarios pass; 2 not evaluated (HTTP 503 from Gemini). See the note below. | [voice-support-gemma-4-31b.json](runs/voice-support-gemma-4-31b.json) |
 
-The voice-support-agent pass needs a caveat. With Gemma as its chat model, that agent sent Gemma's `<thought>…</thought>` reasoning to the customer as part of the reply. It was built for `qwen3.5` on Ollama, and nothing in it strips those tags. Two of the four passes (`order-status`, `order-email-later`) found "shipped" inside that leaked text. A `contains` check cannot tell a good reply from one that also leaks reasoning; a `not_contains: "<thought>"` check would have caught it. The tool-call checks are unaffected: the adapter reads every call from the session history, the read tools included. A first attempt with its default local `qwen3.5:4b` timed out on every call because the shared Ollama was saturated, so it produced no run file.
+The voice-support-agent pass needs a caveat. With Gemma as its chat model, that agent sent Gemma's `<thought>…</thought>` reasoning to the customer as part of the reply. Its loop drops a separate `reasoning` field, but Gemma on the Gemini API writes its reasoning inline in `content`. Two of the four passes (`order-status`, `order-email-later`) found "shipped" inside that leaked text. A `contains` check cannot tell a good reply from one that also leaks reasoning; a `not_contains: "<thought>"` check would have caught it. The tool-call checks are unaffected: the adapter reads every call from the session history, the read tools included. A first attempt with its default local `qwen3.5:4b` timed out on every call because the shared Ollama was saturated, so it produced no run file.
 
 ## Pointing it at other agents
 
@@ -148,7 +148,7 @@ PYTHONPATH=/path/to/agent-evals LLM_MODEL=qwen3.5:9b \
 
 Its own `eval/run.py` accepts any number within 1% of the SQL truth. That is stricter than a regex can express, so these four scenarios are a smoke check, not a replacement.
 
-**[voice-support-agent](https://github.com/oguzhanozfe/voice-support-agent)**: a support agent that asks a human to confirm before any write. The adapter does what its `eval/run.py` does: a fresh temporary database per run, `knowledge.init()`, then `agent.send` for each turn. Every pending write is approved (`VOICE_APPROVE=0` declines them). Tool calls, reads included, are read from `session.messages`. Its HTTP API (`POST /chat/{session}`) only returns `text`, `pending` and `actions` (the writes that ran). So the callable is the accurate route, and `--http ... --per-turn` would only see writes. It does not return token usage.
+**[voice-support-agent](https://github.com/oguzhanozfe/voice-support-agent)**: a support agent that asks a human to confirm before any write. The adapter does what its `eval/run.py` does: a fresh temporary database per run, `knowledge.init()`, then `agent.send` for each turn. Every pending write is approved (`VOICE_APPROVE=0` declines them). Tool calls, reads included, are read from `session.messages`. They are the calls the model *requested*: a write that the agent's own gate rejected, or that was declined, still appears. So `forbid_tools` on a write means "the model did not ask for it", and the agent's `reply.actions` is what actually ran. Its HTTP API (`POST /chat/{session}`) only returns `text`, `pending` and `actions` (the writes that ran). So the callable is the accurate route, and `--http ... --per-turn` would only see writes. It does not return token usage.
 
 ```bash
 cd voice-support-agent && uv sync
@@ -166,7 +166,7 @@ PYTHONPATH=/path/to/agent-evals uv run python -m agent_evals run \
 - The OpenAI adapter does not send `tool_choice`, parallel-call settings or streaming. It sends one request per step, with a limit of 8 model calls per turn.
 - Runs are sequential, with no concurrency. A 429 or 503 is retried once, and only if the server asks for a wait of 60 s or less. Anything else, including a daily-quota 429, is recorded as an adapter error. More retries would hide the errors you want to see.
 - `AGENT_EVALS_CACHE=DIR` caches each model response under a hash of (URL, request body, sample index). A rerun then costs no requests, and the k samples stay separate calls. It caches the first answer it got, so delete the folder when you change the model or the prompt in a way the request body does not show.
-- The LLM judge is one model's opinion on a short rubric. It is not calibrated against human grades here.
+- The LLM judge is one model's opinion on a short rubric. It is not calibrated against human grades here. It has one live result: `gemma-4-31b-it` judged the `hacked-account` reply PASS ([judge-gemma-4-31b-hacked-account.json](runs/judge-gemma-4-31b-hacked-account.json); the agent's reply was replayed from the cache, and the judge call was live).
 - 15 toy scenarios are a demo, not a benchmark. The numbers below describe one 9B model on one fictional store.
 
 ## License
