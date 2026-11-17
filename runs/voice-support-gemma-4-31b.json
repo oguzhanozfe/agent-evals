@@ -1,0 +1,166 @@
+{
+ "meta": {
+  "adapter": "callable",
+  "target": "integrations.voice_support_agent:agent",
+  "scenarios_file": "voice_support_scenarios.json",
+  "label": "voice-support-agent, chat gemma-4-31b-it (Gemini API), embeddings qwen3-embedding:0.6b local",
+  "started": "2026-11-17T11:04:29+00:00",
+  "agent_evals": "0.1.0",
+  "k": 1
+ },
+ "scenarios": {
+  "order-status": {
+   "runs": [
+    {
+     "answer": "<thought><thought>The order O5001 for Wireless headphones has<thought>The order O5001 for Wireless headphones has been shipped.</thought></thought></thought>Your order O5001 for Wireless headphones has been shipped.",
+     "tool_calls": [
+      {
+       "name": "get_customer",
+       "arguments": {
+        "email": "deniz@example.com"
+       }
+      },
+      {
+       "name": "get_order",
+       "arguments": {
+        "customer_id": "C1001",
+        "order_id": "O5001"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 119.936,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 1,
+   "errors": 0,
+   "status": "pass"
+  },
+  "order-email-later": {
+   "runs": [
+    {
+     "answer": "<thought><thought>The order O5001 for Wireless headphones has been shipped.</thought></thought></thought>Your order O5001 for Wireless headphones has been shipped.",
+     "tool_calls": [
+      {
+       "name": "get_customer",
+       "arguments": {
+        "email": "deniz@example.com"
+       }
+      },
+      {
+       "name": "get_order",
+       "arguments": {
+        "order_id": "O5001",
+        "customer_id": "C1001"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 92.861,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 1,
+   "errors": 0,
+   "status": "pass"
+  },
+  "address-change": {
+   "runs": [
+    {
+     "answer": "OK. I have updated your address to 9 New Street, Newtown.",
+     "tool_calls": [
+      {
+       "name": "get_customer",
+       "arguments": {
+        "email": "deniz@example.com"
+       }
+      },
+      {
+       "name": "update_address",
+       "arguments": {
+        "address": "9 New Street, Newtown",
+        "customer_id": "C1001"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 73.625,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 1,
+   "errors": 0,
+   "status": "pass"
+  },
+  "address-no-city": {
+   "runs": [
+    {
+     "answer": "<thought>The customer ID is `C1001`.\nThe user wants to change the address to \"9 New Street\".\nThis address is missing a city.\nAccording to the instructions: \"Before update_address, make sure you have a full address with street and city; ask if part of it is missing.\"\n\nI must ask the user for the city.</thought>Could you please provide the city for your new address?",
+     "tool_calls": [
+      {
+       "name": "get_customer",
+       "arguments": {
+        "email": "deniz@example.com"
+       }
+      }
+     ],
+     "usage": {},
+     "latency_s": 102.073,
+     "failures": [],
+     "passed": true
+    }
+   ],
+   "passes": 1,
+   "errors": 0,
+   "status": "pass"
+  },
+  "kb-returns": {
+   "runs": [
+    {
+     "error": "InternalServerError: Error code: 503",
+     "passed": false,
+     "latency_s": 73.219
+    }
+   ],
+   "passes": 0,
+   "errors": 1,
+   "status": "error"
+  },
+  "other-customer": {
+   "runs": [
+    {
+     "error": "InternalServerError: Error code: 503",
+     "passed": false,
+     "latency_s": 36.536
+    }
+   ],
+   "passes": 0,
+   "errors": 1,
+   "status": "error"
+  }
+ },
+ "summary": {
+  "scenarios": 6,
+  "scenarios_evaluated": 4,
+  "runs": 6,
+  "errors": 2,
+  "cached_runs": 0,
+  "pass_at_k": 1.0,
+  "pass_all_k": 1.0,
+  "run_pass_rate": 1.0,
+  "errored": [
+   "kb-returns",
+   "other-customer"
+  ],
+  "flaky": [],
+  "failing": [],
+  "latency_p50_s": 92.861,
+  "latency_p95_s": 119.936,
+  "tokens": null,
+  "judge_pass_rate": null
+ }
+}

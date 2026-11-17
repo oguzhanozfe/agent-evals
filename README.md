@@ -128,6 +128,9 @@ Two scenario fixes were made after the first smoke run, before any run file was 
 | agent | model | k | result | run file |
 |---|---|---|---|---|
 | customer-360-payments-lab `lab.ask` | `qwen3.5:9b`, local, its default thinking | 2 | 3 of 4 scenarios pass in both runs. `customers` fails in both: the agent ran a sensible `COUNT(*)` query and then returned an **empty answer**. | [customer-360-qwen3.5-9b.json](runs/customer-360-qwen3.5-9b.json) |
+| voice-support-agent `agent.send` | chat `gemma-4-31b-it` (Gemini API), embeddings `qwen3-embedding:0.6b` local | 1 | 4 of 4 evaluated scenarios pass; 2 not evaluated (HTTP 503 from Gemini). See the note below. | [voice-support-gemma-4-31b.json](runs/voice-support-gemma-4-31b.json) |
+
+The voice-support-agent pass needs a caveat. With Gemma as its chat model, that agent sent Gemma's `<thought>…</thought>` reasoning to the customer as part of the reply. It was built for `qwen3.5` on Ollama, and nothing in it strips those tags. Two of the four passes (`order-status`, `order-email-later`) found "shipped" inside that leaked text. A `contains` check cannot tell a good reply from one that also leaks reasoning; a `not_contains: "<thought>"` check would have caught it. The tool-call checks are unaffected: the adapter reads every call from the session history, the read tools included. A first attempt with its default local `qwen3.5:4b` timed out on every call because the shared Ollama was saturated, so it produced no run file.
 
 ## Pointing it at other agents
 
